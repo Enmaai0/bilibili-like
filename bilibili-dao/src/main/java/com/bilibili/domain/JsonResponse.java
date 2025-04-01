@@ -1,4 +1,4 @@
-package com.bilibili.response;
+package com.bilibili.domain;
 
 public class JsonResponse<T> {
     private String code;
