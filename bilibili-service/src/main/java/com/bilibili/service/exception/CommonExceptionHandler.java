@@ -1,6 +1,6 @@
 package com.bilibili.service.exception;
 
-import com.bilibili.response.JsonResponse;
+import com.bilibili.domain.JsonResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
