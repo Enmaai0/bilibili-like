@@ -8,6 +8,14 @@
         select * from user where phone = #{phone}
     </select>
 
+    <select id="getUserById" parameterType="java.lang.Long" resultType="com.bilibili.domain.User">
+        select * from user where id = #{id}
+    </select>
+
+    <select id="getUserInfoByUserId" parameterType="java.lang.Long" resultType="com.bilibili.domain.UserInfo">
+        select * from user_info where userId = #{userId}
+    </select>
+
     <insert id="addUser" parameterType="com.bilibili.domain.User" useGeneratedKeys="true" keyProperty="id">
         insert into
             user(
