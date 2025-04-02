@@ -59,7 +59,7 @@ public class UserService {
         }
     }
 
-    public String login(User user) {
+    public String login(User user) throws Exception {
         String phone = user.getPhone();
         if(StringUtil.isNullOrEmpty(phone)) {
             throw new ConditionalException("Phone number is required");
@@ -84,5 +84,12 @@ public class UserService {
         }
 
         return new TokenUtil().generateToken(dbUser.getId());
+    }
+
+    public User getUserInfo(Long userId) {
+        User user = userMapper.getUserById(userId);
+        UserInfo userInfo = userMapper.getUserInfoByUserId(userId);
+        user.setUserInfo(userInfo);
+        return user;
     }
 }

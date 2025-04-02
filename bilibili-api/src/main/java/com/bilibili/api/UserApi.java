@@ -4,6 +4,7 @@ import com.bilibili.domain.User;
 import com.bilibili.domain.JsonResponse;
 import com.bilibili.service.UserService;
 import com.bilibili.service.util.RSAUtil;
+import com.bilibili.support.UserSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserApi {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserSupport userSupport;
+
+    @GetMapping("/users")
+    public JsonResponse<User> getUserInfo(){
+        Long userId = userSupport.getCurrentUserId();
+        User user = userService.getUserInfo(userId);
+        return JsonResponse.success(user);
+    }
 
     @GetMapping("/rsa-pks")
     public JsonResponse<String> getRsaPublicKey() {
@@ -28,7 +39,7 @@ public class UserApi {
     }
 
     @PostMapping("user-tokens")
-    public JsonResponse<String> login(@RequestBody User user) {
+    public JsonResponse<String> login(@RequestBody User user) throws Exception {
         String token = userService.login(user);
         return JsonResponse.success(token);
     }
