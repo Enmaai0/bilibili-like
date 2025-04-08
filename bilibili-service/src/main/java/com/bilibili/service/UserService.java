@@ -11,6 +11,7 @@ import com.bilibili.service.util.RSAUtil;
 import com.bilibili.service.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 
@@ -60,11 +61,14 @@ public class UserService {
     }
 
     public String login(User user) throws Exception {
-        String phone = user.getPhone();
-        if(StringUtil.isNullOrEmpty(phone)) {
-            throw new ConditionalException("Phone number is required");
+        String phone = user.getPhone() == null ? "" : user.getPhone();
+        String email = user.getEmail() == null ? "" : user.getEmail();
+
+        if(StringUtil.isNullOrEmpty(phone) && StringUtil.isNullOrEmpty(email)) {
+            throw new ConditionalException("Phone number or email is required");
         }
-        User dbUser = userMapper.getUserByPhone(phone);
+        String pe = phone + email;
+        User dbUser = userMapper.getUserByPhoneOrEmail(pe);
         if(dbUser == null) {
             throw new ConditionalException("User does not exist");
         }
@@ -83,7 +87,7 @@ public class UserService {
             throw new ConditionalException("Incorrect password");
         }
 
-        return new TokenUtil().generateToken(dbUser.getId());
+        return TokenUtil.generateToken(dbUser.getId());
     }
 
     public User getUserInfo(Long userId) {
@@ -91,5 +95,33 @@ public class UserService {
         UserInfo userInfo = userMapper.getUserInfoByUserId(userId);
         user.setUserInfo(userInfo);
         return user;
+    }
+
+    public void updateUserInfo(User user) {
+        Long userId = user.getId();
+        if(userId == null) {
+            throw new ConditionalException("User ID is required");
+        }
+        User dbUser = userMapper.getUserById(userId);
+        if(dbUser == null) {
+            throw new ConditionalException("User does not exist");
+        }
+
+        if(!StringUtil.isNullOrEmpty(user.getPassword())) {
+            String password = user.getPassword();
+            String salt = dbUser.getSalt();
+            String rawPassword;
+            try {
+                rawPassword = RSAUtil.decrypt(password);
+            } catch (Exception e) {
+                throw new ConditionalException("Failed to decrypt password");
+            }
+
+            String md5Password = MD5Util.sign(rawPassword, salt, "UTF-8");
+            user.setPassword(md5Password);
+        }
+
+        userMapper.updateUser(user);
+        return;
     }
 }

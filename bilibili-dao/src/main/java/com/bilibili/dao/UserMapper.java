@@ -13,4 +13,8 @@ public interface UserMapper {
     User getUserById(Long userId);
 
     UserInfo getUserInfoByUserId(Long userId);
+
+    Integer updateUser(User user);
+
+    User getUserByPhoneOrEmail(String phoneOrEmail);
 }
