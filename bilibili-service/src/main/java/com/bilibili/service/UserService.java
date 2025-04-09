@@ -124,4 +124,8 @@ public class UserService {
         userMapper.updateUser(user);
         return;
     }
+
+    public User getUserById(Long userId) {
+        return userMapper.getUserById(userId);
+    }
 }
