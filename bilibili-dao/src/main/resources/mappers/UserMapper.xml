@@ -15,7 +15,17 @@
     <select id="getUserInfoByUserId" parameterType="java.lang.Long" resultType="com.bilibili.domain.UserInfo">
         select * from user_info where userId = #{userId}
     </select>
-
+    
+    <select id="getUserByPhoneOrEmail" parameterType="java.lang.String" resultType="com.bilibili.domain.User">
+        select
+            *
+        from
+            user
+        where
+            phone like concat('%', #{phoneOrEmail}, '%')
+        or
+            email like concat('%', #{phoneOrEmail}, '%')
+    </select>
     <insert id="addUser" parameterType="com.bilibili.domain.User" useGeneratedKeys="true" keyProperty="id">
         insert into
             user(
@@ -49,4 +59,21 @@
                 #{birth}
               )
     </insert>
+    
+    <update id="updateUser" parameterType="com.bilibili.domain.User">
+        update
+            user
+        set
+            <if test="phone != null and phone != '' ">
+                phone = #{phone},
+            </if>
+            <if test="email != null and email != '' ">
+                email = #{email}
+            </if>
+            <if test="password != null and password != '' ">
+                password = #{password}
+            </if>
+        where
+            id = #{id}
+    </update>
 </mapper>
