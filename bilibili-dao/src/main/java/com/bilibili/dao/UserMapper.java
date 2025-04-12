@@ -2,6 +2,10 @@ package com.bilibili.dao;
 
 import com.bilibili.domain.User;
 import com.bilibili.domain.UserInfo;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
 
 public interface UserMapper {
     User getUserByPhone(String phone);
@@ -14,7 +18,13 @@ public interface UserMapper {
 
     UserInfo getUserInfoByUserId(Long userId);
 
+    List<UserInfo> getUserInfoByUserIds(@Param("userIds") List<Long> userIds);
+
     Integer updateUser(User user);
 
     User getUserByPhoneOrEmail(String phoneOrEmail);
+
+    Integer pageCountUserInfos(Map<String, Object> params);
+
+    List<UserInfo> pageListUserInfos(Map<String, Object> params);
 }

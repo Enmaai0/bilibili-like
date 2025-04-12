@@ -3,6 +3,24 @@
         PUBLIC "-//mybatis.org//DTD MAPPER 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bilibili.dao.UserFollowingMapper">
+    <select id="getUserFollowings" parameterType="java.lang.Long" resultType="com.bilibili.domain.UserFollowing">
+        select
+            *
+        from
+            user_following
+        where
+            userId = #{userId}
+    </select>
+    
+    <select id="getFans" parameterType="java.lang.Long" resultType="com.bilibili.domain.UserFollowing">
+        select
+            *
+        from
+            user_following
+        where
+            followingId = #{userId}
+    </select>
+
     <insert id="addUserFollowing" parameterType="com.bilibili.domain.UserFollowing">
         insert
         into
@@ -13,7 +31,7 @@
             ) values (
                       #{userId},
                       #{followingId},
-                      #({groupId})
+                      #{groupId}
             )
     </insert>
 

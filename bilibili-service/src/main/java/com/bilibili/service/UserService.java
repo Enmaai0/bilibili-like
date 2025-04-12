@@ -1,7 +1,9 @@
 package com.bilibili.service;
 
 import ch.qos.logback.core.util.StringUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.bilibili.dao.UserMapper;
+import com.bilibili.domain.PageResult;
 import com.bilibili.domain.User;
 import com.bilibili.domain.UserInfo;
 import com.bilibili.domain.constant.UserConstant;
@@ -13,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -97,6 +101,10 @@ public class UserService {
         return user;
     }
 
+    public List<UserInfo> getUserInfoByUserIds(List<Long> userIds) {
+        return userMapper.getUserInfoByUserIds(userIds);
+    }
+
     public void updateUserInfo(User user) {
         Long userId = user.getId();
         if(userId == null) {
@@ -127,5 +135,19 @@ public class UserService {
 
     public User getUserById(Long userId) {
         return userMapper.getUserById(userId);
+    }
+
+    public PageResult<UserInfo> pageListUserInfos(JSONObject map) {
+        Integer pageNum = map.getInteger("pageNum");
+        Integer size = map.getInteger("size");
+        int start = (pageNum - 1) * size;
+        map.put("start", start);
+        map.put("limit", size);
+        int total = userMapper.pageCountUserInfos(map);
+        List<UserInfo> list = new ArrayList<>();
+        if(total > 0) {
+            list = userMapper.pageListUserInfos(map);
+        }
+        return new PageResult<>(list, total);
     }
 }
