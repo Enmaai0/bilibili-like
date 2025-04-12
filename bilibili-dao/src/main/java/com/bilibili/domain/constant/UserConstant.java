@@ -13,4 +13,8 @@ public interface UserConstant {
     public static final String DEFAULT_NICK = "bilibilier";
 
     public static final String USERFOLLOWING_GROUP_DEFAULT = "2";
+
+    public static final String USERFOLLOWING_GROUP_USER = "3";
+
+    public static final String USERFOLLOWING_ALL_FOLLOWING = "My Following";
 }

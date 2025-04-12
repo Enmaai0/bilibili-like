@@ -10,4 +10,22 @@
     <select id="getById" parameterType="java.lang.Long" resultType="com.bilibili.domain.FollowingGroup">
         select * from following_group where id = #{id}
     </select>
+
+    <select id="getByUserId" parameterType="java.lang.Long" resultType="com.bilibili.domain.FollowingGroup">
+        select * from following_group where userId = #{userId} or `type` in ('0', '1', '2')
+    </select>
+    
+    <insert id="addFollowingGroup" parameterType="com.bilibili.domain.FollowingGroup" useGeneratedKeys="true" keyProperty="id">
+        insert into following_group (userId, `type`, `name`)
+        values (#{userId}, #{type}, #{name})
+    </insert>
+
+    <select id="getUserFollowingGroups" parameterType="java.lang.Long" resultType="com.bilibili.domain.FollowingGroup">
+        select
+            *
+        from
+            following_group
+        where
+            userId = #{userId}
+    </select>
 </mapper>

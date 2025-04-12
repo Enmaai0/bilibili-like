@@ -22,6 +22,16 @@ public class UserInfo {
 
     private Date updateTime;
 
+    private boolean followed;
+
+    public boolean isFollowed() {
+        return followed;
+    }
+
+    public void setFollowed(boolean followed) {
+        this.followed = followed;
+    }
+
     public Long getId() {
         return id;
     }
