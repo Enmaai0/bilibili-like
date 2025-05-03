@@ -2,6 +2,8 @@ package com.bilibili.api;
 
 import com.bilibili.domain.JsonResponse;
 import com.bilibili.domain.UserActivity;
+import com.bilibili.domain.annotation.DeniedUser;
+import com.bilibili.domain.constant.AuthRoleConstant;
 import com.bilibili.service.UserActivityService;
 import com.bilibili.support.UserSupport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ public class UserActivityApi {
     @Autowired
     private UserSupport userSupport;
 
+    @DeniedUser(value = {AuthRoleConstant.ROLE_LV0})
     @PostMapping("user-activity")
     public JsonResponse<String> addUserActivity(@RequestBody UserActivity userActivity) {
         userActivity.setUserId(userSupport.getCurrentUserId());

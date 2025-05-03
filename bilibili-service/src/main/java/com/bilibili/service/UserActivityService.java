@@ -7,7 +7,6 @@ import com.bilibili.domain.JsonResponse;
 import com.bilibili.domain.UserActivity;
 import com.bilibili.domain.constant.UserActivityConstant;
 import com.bilibili.service.util.RocketMQUtil;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
