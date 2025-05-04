@@ -12,17 +12,22 @@ import com.bilibili.service.util.MD5Util;
 import com.bilibili.service.util.RSAUtil;
 import com.bilibili.service.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private UserAuthService userAuthService;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
 
     public void addUser(User user) {
         String phone = user.getPhone();
@@ -62,6 +67,8 @@ public class UserService {
         if(count == 0) {
             throw new ConditionalException("Failed to add user info");
         }
+
+        userAuthService.addUserDefaultRole(user.getId());
     }
 
     public String login(User user) throws Exception {
@@ -149,5 +156,56 @@ public class UserService {
             list = userMapper.pageListUserInfos(map);
         }
         return new PageResult<>(list, total);
+    }
+
+    public Map<String, Object> dtsLogin(User user) throws Exception {
+        String phone = user.getPhone() == null ? "" : user.getPhone();
+        String email = user.getEmail() == null ? "" : user.getEmail();
+
+        if(StringUtil.isNullOrEmpty(phone) && StringUtil.isNullOrEmpty(email)) {
+            throw new ConditionalException("Phone number or email is required");
+        }
+        String pe = phone + email;
+        User dbUser = userMapper.getUserByPhoneOrEmail(pe);
+        if(dbUser == null) {
+            throw new ConditionalException("User does not exist");
+        }
+
+        String password = user.getPassword();
+        String salt = dbUser.getSalt();
+        String rawPassword;
+        try {
+            rawPassword = RSAUtil.decrypt(password);
+        } catch (Exception e) {
+            throw new ConditionalException("Failed to decrypt password");
+        }
+
+        String md5Password = MD5Util.sign(rawPassword, salt, "UTF-8");
+        if(!dbUser.getPassword().equals(md5Password)) {
+            throw new ConditionalException("Incorrect password");
+        }
+
+        Map<String, Object> resultMap = new HashMap<>();
+        String accessToken = TokenUtil.generateToken(dbUser.getId());
+        String refreshToken = TokenUtil.generateRefreshToken(dbUser.getId());
+        resultMap.put("accessToken", accessToken);
+        resultMap.put("refreshToken", refreshToken);
+
+        redisTemplate.opsForValue().set("RefreshToken_" + refreshToken, String.valueOf(dbUser.getId()), 604800, TimeUnit.SECONDS);
+        return resultMap;
+    }
+
+    public String refreshAccessToken(String refreshToken) throws Exception {
+        String userIdStr = redisTemplate.opsForValue().get("RefreshToken_" + refreshToken);
+        if(StringUtil.isNullOrEmpty(userIdStr)) {
+            throw new ConditionalException("555", "Refresh token expired");
+        }
+        Long userId = Long.valueOf(userIdStr);
+
+        return TokenUtil.generateToken(userId);
+    }
+
+    public void logout(String refreshToken) {
+        redisTemplate.delete("RefreshToken_" + refreshToken);
     }
 }
