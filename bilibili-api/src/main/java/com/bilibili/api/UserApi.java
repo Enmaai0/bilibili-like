@@ -6,10 +6,12 @@ import com.bilibili.service.UserFollowingService;
 import com.bilibili.service.UserService;
 import com.bilibili.service.util.RSAUtil;
 import com.bilibili.support.UserSupport;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class UserApi {
@@ -71,5 +73,25 @@ public class UserApi {
         }
 
         return JsonResponse.success(pageResult);
+    }
+
+    @PostMapping("/user-dts")
+    public JsonResponse<Map<String, Object>> loginWithDts(@RequestBody User user) throws Exception {
+        Map<String, Object> resultMap = userService.dtsLogin(user);
+        return JsonResponse.success(resultMap);
+    }
+
+    @DeleteMapping("/refresh-tokens")
+    public JsonResponse<String> logout(HttpServletRequest request) {
+        String refreshToken = request.getHeader("refreshToken");
+        userService.logout(refreshToken);
+        return JsonResponse.success();
+    }
+
+    @PostMapping("/access-tokens")
+    public JsonResponse<String> refreshAccessToken(HttpServletRequest request) throws Exception {
+        String refreshToken = request.getHeader("refreshToken");
+        String accessToken = userService.refreshAccessToken(refreshToken);
+        return JsonResponse.success(accessToken);
     }
 }
