@@ -31,4 +31,11 @@ public class UserAuthService {
         userAuthorities.setRoleMenuList(roleMenuList);
         return JsonResponse.success(userAuthorities);
     }
+
+    public void addUserDefaultRole(Long userId) {
+        UserRole userRole = new UserRole();
+        userRole.setRoleId(1L);
+        userRole.setUserId(userId);
+        userRoleService.addUserRole(userRole);
+    }
 }
