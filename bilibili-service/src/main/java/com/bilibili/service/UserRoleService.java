@@ -15,4 +15,8 @@ public class UserRoleService {
     public List<UserRole> getUserRoleByUserId(Long userId) {
         return userRoleMapper.getUserRoleByUserId(userId);
     }
+
+    public void addUserRole(UserRole userRole) {
+        userRoleMapper.addUserRole(userRole);
+    }
 }

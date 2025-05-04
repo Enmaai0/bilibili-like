@@ -15,4 +15,9 @@
             userId = #{userId}
     </select>
 
+    <insert id="addUserRole" parameterType="com.bilibili.domain.auth.UserRole">
+        insert into user_role (userId, roleId)
+        values (#{userId}, #{roleId})
+    </insert>
+
 </mapper>
