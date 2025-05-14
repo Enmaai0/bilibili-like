@@ -1,35 +1,44 @@
 package com.bilibili.service;
 
-import ch.qos.logback.core.util.StringUtil;
 import com.bilibili.dao.FileMapper;
 import com.bilibili.domain.File;
-import com.bilibili.service.util.FastdfsUtil;
+import com.bilibili.service.util.LocalFileStorage;
 import com.bilibili.service.util.MD5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Date;
 
 @Service
 public class FileService {
     @Autowired
-    private FastdfsUtil fastdfsUtil;
+    private LocalFileStorage localFileStorage;
 
     @Autowired
     private FileMapper fileMapper;
 
     public String uploadFileBySlice(MultipartFile slice, String fileMd5, Integer sliceNo, Integer totalSliceNo) throws Exception {
+        // First check if the file already exists by MD5
         File dbFile = fileMapper.getFileByMD5(fileMd5);
         if (dbFile != null) {
             return dbFile.getUrl();
         }
-        String url = fastdfsUtil.uploadFileBySlices(slice, fileMd5, sliceNo, totalSliceNo);
-        if(!StringUtil.isNullOrEmpty(url)) {
+
+        // Upload the file slice
+        String url = localFileStorage.uploadFileBySlices(slice, fileMd5, sliceNo, totalSliceNo);
+
+        // If all slices are uploaded (url is returned), save file info to database
+        if (!StringUtils.isEmpty(url)) {
             dbFile = new File();
             dbFile.setUrl(url);
             dbFile.setMd5(fileMd5);
-            dbFile.setType(fastdfsUtil.getFileType(slice));
+            dbFile.setType(localFileStorage.getFileExtension(slice));
+            dbFile.setCreateTime(new Date());
             fileMapper.addFile(dbFile);
         }
+
         return url;
     }
 
