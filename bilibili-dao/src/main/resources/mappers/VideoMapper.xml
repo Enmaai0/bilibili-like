@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD MAPPER 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bilibili.dao.VideoMapper">
+    <select id="pageCountVideos" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select
+            count(1)
+        from
+            video
+        <where>
+            1=1
+            <if test="area != null and area != ''">
+                and area = #{area}
+            </if>
+        </where>
+    </select>
+
+    <select id="pageListVideos" parameterType="java.util.Map" resultType="com.bilibili.domain.Video">
+        select
+            *
+        from
+            video
+        <where>
+            1=1
+            <if test="area != null and area != ''">
+                and area = #{area}
+            </if>
+        </where>
+        order by createTime desc
+        limit #{start}, #{limit}
+    </select>
+    
+    <insert id="addVideos" parameterType="com.bilibili.domain.Video" useGeneratedKeys="true" keyProperty="id">
+        insert into
+            video(
+                id,
+                userId,
+                url,
+                thumbnail,
+                title,
+                `type`,
+                duration,
+                area,
+                description
+            )value(
+                #{id},
+                #{userId},
+                #{url},
+                #{thumbnail},
+                #{title},
+                #{type},
+                #{duration},
+                #{area},
+                #{description}
+            )
+    </insert>
+
+    <insert id="batchAddVideoTags" parameterType="java.util.List">
+        insert into
+            video_tag(
+                videoId,
+                tagId
+            )value(
+                #{videoId},
+                #{tagId}
+            )
+        <foreach collection="videoTagList" item="item" separator=",">
+            (#{item.videoId}, #{item.tagId})
+        </foreach>
+    </insert>
+</mapper>
