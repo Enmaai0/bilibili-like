@@ -5,10 +5,13 @@ import com.bilibili.domain.PageResult;
 import com.bilibili.domain.Video;
 import com.bilibili.service.VideoService;
 import com.bilibili.support.UserSupport;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -42,5 +45,12 @@ public class VideoApi {
         PageResult<Video> pageResult = videoService.pageListVideos(pageNum, pageSize, area);
 
         return JsonResponse.success(pageResult);
+    }
+
+    @GetMapping("/video-slices")
+    public void viewVideoOnlineBySlices(HttpServletRequest request,
+                                      HttpServletResponse response,
+                                      @RequestParam("url") String url) throws Exception {
+        videoService.viewVideoOnlineBySlices(request, response, url);
     }
 }
