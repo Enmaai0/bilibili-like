@@ -1,6 +1,7 @@
 package com.bilibili.service.util;
 
 import com.bilibili.service.exception.ConditionalException;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,41 @@ public class LocalFileStorage {
 
     public LocalFileStorage(RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
+        // 打印工作目录和配置信息
+        System.out.println("Working Directory = " + System.getProperty("user.dir"));
+    }
+
+    // After properties are set
+    @PostConstruct
+    public void init() {
+        System.out.println("Working Directory = " + System.getProperty("user.dir"));
+        System.out.println("User Home = " + System.getProperty("user.home"));
+        System.out.println("Configured storage path: " + storageBasePath);
+        System.out.println("Configured URL prefix: " + fileUrlPrefix);
+        
+        // 确保存储目录存在
+        File storageDir = new File(storageBasePath);
+        if (!storageDir.exists()) {
+            boolean created = storageDir.mkdirs();
+            if (!created) {
+                throw new RuntimeException("Failed to create storage directory: " + storageBasePath);
+            }
+            System.out.println("Created storage directory: " + storageBasePath);
+        }
+        
+        // 确保目录可写
+        if (!storageDir.canWrite()) {
+            throw new RuntimeException("Storage directory is not writable: " + storageBasePath);
+        }
+        
+        // 列出目录中的文件
+        File[] files = storageDir.listFiles();
+        if (files != null) {
+            System.out.println("Files in storage directory:");
+            for (File file : files) {
+                System.out.println(" - " + file.getName());
+            }
+        }
     }
 
     /**
@@ -218,6 +254,25 @@ public class LocalFileStorage {
      * @return URL for accessing the file
      */
     private String getFileUrl(String fileName) {
-        return fileUrlPrefix + fileName;
+        return fileUrlPrefix + "/" + fileName;
+    }
+
+    public String getStorageBasePath() {
+        return storageBasePath;
+    }
+
+    /**
+     * 移动上传的文件到存储目录
+     * @param sourceFile 源文件
+     * @param targetFilename 目标文件名
+     * @return 文件访问URL
+     * @throws IOException 如果文件操作失败
+     */
+    private String moveToStorage(File sourceFile, String targetFilename) throws IOException {
+        File targetFile = new File(storageBasePath, targetFilename);
+        if (!sourceFile.renameTo(targetFile)) {
+            throw new IOException("Failed to move file to storage: " + targetFilename);
+        }
+        return getFileUrl(targetFilename);
     }
 }
