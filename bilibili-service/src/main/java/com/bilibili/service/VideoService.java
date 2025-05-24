@@ -1,9 +1,7 @@
 package com.bilibili.service;
 
 import com.bilibili.dao.VideoMapper;
-import com.bilibili.domain.PageResult;
-import com.bilibili.domain.Video;
-import com.bilibili.domain.VideoTag;
+import com.bilibili.domain.*;
 import com.bilibili.service.exception.ConditionalException;
 import com.bilibili.service.util.LocalFileStorage;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,6 +28,8 @@ public class VideoService {
 
     @Autowired
     private LocalFileStorage localFileStorage;
+    @Autowired
+    private UserCoinService userCoinService;
 
     @Transactional
     public void addVideo(Video video) {
@@ -138,5 +139,116 @@ public class VideoService {
                 }
             }
         }
+    }
+
+    public void addVideoLike(Long videoId, Long userId) {
+        Video video = videoMapper.getVideoById(videoId);
+
+        if(video == null) {
+            throw new ConditionalException("Video not found");
+        }
+
+        Long likeId = videoMapper.getVideoIdByVideoIdAndUserId(videoId, userId);
+        if(likeId != null) {
+            throw new ConditionalException("Video already liked");
+        }
+
+        VideoLike videoLike = new VideoLike();
+        videoLike.setVideoId(videoId);
+        videoLike.setUserId(userId);
+        videoMapper.addVideoLike(videoLike);
+    }
+
+    public void deleteVideoLike(Long videoId, Long userId) {
+        videoMapper.deleteVideoLike(videoId, userId);
+    }
+
+    public Map<String, Object> getVideoLikes(Long videoId, Long userId) {
+        Integer count = videoMapper.countVideoLikes(videoId);
+        // Check if the user has liked the video
+        Long liked = videoMapper.getVideoIdByVideoIdAndUserId(videoId, userId);
+        Map<String, Object> result = Map.of(
+                "count", count,
+                "liked", liked != null
+        );
+        return result;
+    }
+
+    public void addVideoCollection(VideoCollection videoCollection, Long userId) {
+        Long videoId = videoCollection.getVideoId();
+        Long groupId = videoCollection.getGroupId();
+        if(videoId == null || groupId == null) {
+            throw new ConditionalException("Invalid parameters");
+        }
+
+        Video video = videoMapper.getVideoById(videoId);
+        if(video == null) {
+            throw new ConditionalException("Video not found");
+        }
+
+        videoMapper.deleteVideoCollection(videoId, userId);
+        videoCollection.setUserId(userId);
+        videoMapper.addVideoCollection(videoCollection);
+    }
+
+    public void deleteVideoCollection(Long videoId, Long userId) {
+        videoMapper.deleteVideoCollection(videoId, userId);
+    }
+
+    public Map<String, Object> getVideoCollections(Long videoId, Long userId) {
+        Integer count = videoMapper.countVideoCollections(videoId);
+        VideoCollection collected = videoMapper.getVideoCollectionByVideoIdAndUserId(videoId, userId);
+        return Map.of(
+                "count", count,
+                "collected", collected != null
+        );
+    }
+
+    @Transactional
+    public void addVideoCoins(VideoCoin videoCoin, Long userId) {
+        Long videoId = videoCoin.getVideoId();
+        Integer amount = videoCoin.getAmount();
+        if(videoId == null){
+            throw new ConditionalException("Invalid parameters");
+        }
+        Video video = videoMapper.getVideoById(videoId);
+        if(video == null){
+            throw new ConditionalException("Video not found");
+        }
+
+        //check if the user has enough coins
+        Integer userCoinsAmount = userCoinService.getUserCoinAmount(userId);
+        userCoinsAmount = userCoinsAmount == null ? 0 : userCoinsAmount;
+        if(amount > userCoinsAmount){
+            throw new ConditionalException("Insufficient coins");
+        }
+
+        //check if the user has already given coins to this video
+        VideoCoin dbVideoCoin = videoMapper.getVideoCoinByVideoIdAndUserId(videoId, userId);
+        //update video coin amount
+        if(dbVideoCoin == null){
+            videoCoin.setUserId(userId);
+            videoMapper.addVideoCoin(videoCoin);
+        }else{
+            Integer dbAmount = dbVideoCoin.getAmount();
+            dbAmount += amount;
+            //update video coin amount
+            videoCoin.setUserId(userId);
+            videoCoin.setAmount(dbAmount);
+            videoMapper.updateVideoCoin(videoCoin);
+        }
+
+        //update user coins amount
+        userCoinService.updateUserCoinsAmount(userId, (userCoinsAmount-amount));
+    }
+
+    public Map<String, Object> getVideoCoins(Long videoId, Long userId) {
+        Integer count = videoMapper.getVideoCoinsAmount(videoId);
+        VideoCoin videoCollection = videoMapper.getVideoCoinByVideoIdAndUserId(videoId, userId);
+        Map<String, Object> result = Map.of(
+                "count", count,
+                "like", videoCollection != null
+        );
+        return result;
     }
 }

@@ -31,6 +31,72 @@
         limit #{start}, #{limit}
     </select>
     
+    <select id="getVideoById" parameterType="java.lang.Integer" resultType="com.bilibili.domain.Video">
+        select
+            *
+        from
+            video
+        where
+            id = #{id}
+    </select>
+
+    <select id="getVideoIdByVideoIdAndUserId" parameterType="java.util.Map" resultType="java.lang.Long">
+        select
+            id
+        from
+            video
+        where
+            userId = #{userId}
+            and videoId = #{videoId}
+    </select>
+    
+    <select id="countVideoLikes" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select
+            count(1)
+        from
+            video_like
+        where
+            videoId = #{videoId}
+    </select>
+
+    <select id="countVideoCollections" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select
+            count(1)
+        from
+            video_collection
+        where
+            videoId = #{videoId}
+    </select>
+    
+    <select id="getVideoCollectionsByVideoIdAndUserId" parameterType="java.util.Map" resultType="com.bilibili.domain.VideoCollection">
+        select
+            *
+        from
+            video_collection
+        where
+            userId = #{userId}
+            and videoId = #{videoId}
+    </select>
+    
+    <select id="getVideoCoinByVideoIdAndUserId" parameterType="java.util.Map" resultType="com.bilibili.domain.VideoCoin">
+        select
+            *
+        from
+            video_coin
+        where
+            userId = #{userId}
+            and videoId = #{videoId}
+    </select>
+
+    <select id="getVideoCoinsAmount" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        select
+            sum(amount)
+        from
+            video_coin
+        where
+            videoId = #{videoId}
+    </select>
+    
     <insert id="addVideos" parameterType="com.bilibili.domain.Video" useGeneratedKeys="true" keyProperty="id">
         insert into
             video(
@@ -69,4 +135,67 @@
             (#{item.videoId}, #{item.tagId})
         </foreach>
     </insert>
+    
+    <insert id="addVideoLike" parameterType="com.bilibili.domain.VideoLike">
+        insert into
+            video_like(
+                userId,
+                videoId
+            )value(
+                #{userId},
+                #{videoId}
+            )
+    </insert>
+
+    <insert id="addVideoCollection" parameterType="com.bilibili.domain.VideoCollection">
+        insert into
+            video_collection(
+                userId,
+                videoId,
+                groupId
+            )value(
+                #{userId},
+                #{videoId}
+                #{groupId}
+            )
+    </insert>
+
+    <insert id="addVideoCoin" parameterType="com.bilibili.domain.VideoCoin">
+        insert into
+            video_coin(
+                userId,
+                videoId,
+                amount
+            )value(
+                #{userId},
+                #{videoId},
+                #{amount}
+            )
+    </insert>
+
+    <update id="updateVideoCoin" parameterType="com.bilibili.domain.VideoCoin">
+        update
+            video_coin
+        set
+            amount = #{amount}
+        where
+            userId = #{userId}
+            and videoId = #{videoId}
+    </update>
+    
+    <delete id="deleteVideoLike" parameterType="com.bilibili.domain.VideoLike">
+        delete from
+            video_like
+        where
+            userId = #{userId}
+            and videoId = #{videoId}
+    </delete>
+    
+    <delete id="deleteVideoCollection" parameterType="com.bilibili.domain.VideoCollection">
+        delete from
+            video_collection
+        where
+            userId = #{userId}
+            and videoId = #{videoId}
+    </delete>
 </mapper>
