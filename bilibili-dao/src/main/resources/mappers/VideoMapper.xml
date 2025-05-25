@@ -97,6 +97,42 @@
             videoId = #{videoId}
     </select>
     
+    <select id="pageCountVideoComments" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select
+            count(1)
+        from
+            video_comment
+        <where>
+            videoId = #{videoId}
+            and rootId is null
+        </where>
+    </select>
+
+    <select id="pageListVideoComments" parameterType="java.util.Map" resultType="com.bilibili.domain.VideoComment">
+        select
+            *
+        from
+            video_comment
+        where
+            videoId = #{videoId}
+            and rootId is null
+        order by id desc
+        limit #{start}, #{limit}
+    </select>
+
+    <select id="pageListVideoCommentsByParentIds" parameterType="java.util.List" resultType="com.bilibili.domain.VideoComment">
+        select
+            *
+        from
+            video_comment
+        where
+            rootId in
+            <foreach collection="parentIds" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        order by id
+    </select>
+
     <insert id="addVideos" parameterType="com.bilibili.domain.Video" useGeneratedKeys="true" keyProperty="id">
         insert into
             video(
@@ -170,6 +206,23 @@
                 #{userId},
                 #{videoId},
                 #{amount}
+            )
+    </insert>
+
+    <insert id="addVideoComment" parameterType="com.bilibili.domain.VideoComment">
+        insert into
+            video_comment(
+                userId,
+                videoId,
+                comment,
+                replyUserId,
+                rootId,
+            )value(
+                #{userId},
+                #{videoId},
+                #{comment},
+                #{replyUserId},
+                #{rootId}
             )
     </insert>
 

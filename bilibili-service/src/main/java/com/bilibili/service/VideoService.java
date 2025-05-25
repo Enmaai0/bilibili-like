@@ -13,13 +13,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
@@ -28,8 +23,12 @@ public class VideoService {
 
     @Autowired
     private LocalFileStorage localFileStorage;
+
     @Autowired
     private UserCoinService userCoinService;
+
+    @Autowired
+    private UserService userService;
 
     @Transactional
     public void addVideo(Video video) {
@@ -250,5 +249,67 @@ public class VideoService {
                 "like", videoCollection != null
         );
         return result;
+    }
+
+    public void addVideoComment(VideoComment videoComment, Long userId) {
+        Long videoId = videoComment.getVideoId();
+        if(videoId == null) {
+            throw new ConditionalException("Invalid parameters");
+        }
+        Video video = videoMapper.getVideoById(videoId);
+        if(video == null) {
+            throw new ConditionalException("Video not found");
+        }
+
+        videoComment.setUserId(userId);
+        videoMapper.addVideoComment(videoComment);
+    }
+
+    public PageResult<VideoComment> pageListVideoComments(Integer size, Integer no, Long videoId) {
+        if(size == null || size <= 0 || no == null || no <= 0) {
+            throw new ConditionalException("Invalid parameters");
+        }
+        Map<String, Object> params = Map.of(
+                "start", (no - 1) * size,
+                "limit", size,
+                "videoId", videoId
+        );
+        List<VideoComment> parentList = new ArrayList<>();
+        Integer total = videoMapper.pageCountVideoComments(params);
+
+        if(total > 0) {
+            parentList = videoMapper.pageListVideoComments(params);
+            //batch search 2nd level comments
+            List<Long> parentIdList = parentList.stream()
+                    .map(VideoComment::getId)
+                    .toList();
+            List<VideoComment> childComments = videoMapper.pageListVideoCommentsByParentIds(parentIdList);
+            //batch search user info
+            List<Long> userIdList = parentList.stream()
+                    .map(VideoComment::getUserId)
+                    .toList();
+            List<Long> replyUserIdList = childComments.stream()
+                    .map(VideoComment::getReplyUserId)
+                    .toList();
+            userIdList.addAll(replyUserIdList);
+            List<UserInfo> userInfoList = userService.getUserInfoByUserIds(userIdList);
+            Map<Long, UserInfo> userInfoMap = userInfoList.stream()
+                    .collect(Collectors.toMap(UserInfo::getUserId, userInfo -> userInfo));
+            //set user info for parent comments
+            for (VideoComment comment : parentList) {
+                List<VideoComment> childList = new ArrayList<>();
+                for (VideoComment childComment : childComments) {
+                    if (childComment.getRootId() != null && childComment.getRootId().equals(comment.getId())) {
+                        childComment.setUserInfo(userInfoMap.get(childComment.getUserId()));
+                        childComment.setReplyUserInfo(userInfoMap.get(childComment.getReplyUserId()));
+                        childList.add(childComment);
+                    }
+                }
+                comment.setChildList(childList);
+                comment.setUserInfo(userInfoMap.get(comment.getUserId()));
+            }
+        }
+
+        return new PageResult<>(parentList, total);
     }
 }

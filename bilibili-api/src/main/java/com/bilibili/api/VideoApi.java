@@ -8,8 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -118,4 +116,18 @@ public class VideoApi {
         return JsonResponse.success(result);
     }
 
+    @PostMapping("/video-comments")
+    public JsonResponse<String> addVideoComment(@RequestBody VideoComment videoComment){
+        Long userId = userSupport.getCurrentUserId();
+        videoService.addVideoComment(videoComment, userId);
+        return JsonResponse.success();
+    }
+
+    @GetMapping("/video-comments")
+    public JsonResponse<PageResult<VideoComment>> pageListVideoComments(@RequestParam Integer size,
+                                                                        @RequestParam Integer no,
+                                                                        @RequestParam Long videoId){
+        PageResult<VideoComment> result = videoService.pageListVideoComments(size, no, videoId);
+        return JsonResponse.success(result);
+    }
 }
