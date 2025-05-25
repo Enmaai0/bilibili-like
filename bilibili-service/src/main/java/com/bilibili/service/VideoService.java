@@ -312,4 +312,15 @@ public class VideoService {
 
         return new PageResult<>(parentList, total);
     }
+
+    public Map<String, Object> getVideoDetails(Long videoId) {
+        Video video = videoMapper.getVideoDetails(videoId);
+        Long userId = video.getUserId();
+        User user = userService.getUserInfo(userId);
+
+        return Map.of(
+                "video", video,
+                "userInfo", user.getUserInfo()
+        );
+    }
 }
