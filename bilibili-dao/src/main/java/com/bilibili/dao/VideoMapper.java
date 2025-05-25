@@ -40,4 +40,12 @@ public interface VideoMapper {
     void updateVideoCoin(VideoCoin videoCoin);
 
     Integer getVideoCoinsAmount(Long videoId);
+
+    void addVideoComment(VideoComment videoComment);
+
+    Integer pageCountVideoComments(Map<String, Object> params);
+
+    List<VideoComment> pageListVideoComments(Map<String, Object> params);
+
+    List<VideoComment> pageListVideoCommentsByParentIds(List<Long> parentIdList);
 }
