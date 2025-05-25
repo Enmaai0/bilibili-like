@@ -133,6 +133,15 @@
         order by id
     </select>
 
+    <select id="getVideoDetails" parameterType="java.lang.Long" resultType="com.bilibili.domain.VideoDetails">
+        select
+            *
+        from
+            video
+        where
+            id = #{id}
+    </select>
+
     <insert id="addVideos" parameterType="com.bilibili.domain.Video" useGeneratedKeys="true" keyProperty="id">
         insert into
             video(

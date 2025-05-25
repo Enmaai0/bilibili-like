@@ -48,4 +48,6 @@ public interface VideoMapper {
     List<VideoComment> pageListVideoComments(Map<String, Object> params);
 
     List<VideoComment> pageListVideoCommentsByParentIds(List<Long> parentIdList);
+
+    Video getVideoDetails(Long videoId);
 }
