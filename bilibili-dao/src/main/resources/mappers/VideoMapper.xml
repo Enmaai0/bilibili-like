@@ -133,7 +133,7 @@
         order by id
     </select>
 
-    <select id="getVideoDetails" parameterType="java.lang.Long" resultType="com.bilibili.domain.VideoDetails">
+    <select id="getVideoDetails" parameterType="java.lang.Long" resultType="com.bilibili.domain.Video">
         select
             *
         from
