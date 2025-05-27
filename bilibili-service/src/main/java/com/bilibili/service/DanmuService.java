@@ -6,6 +6,7 @@ import com.bilibili.dao.DanmuMapper;
 import com.bilibili.domain.Danmu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +22,11 @@ public class DanmuService {
     RedisTemplate<String, String> redisTemplate;
     
     public void addDanmu(Danmu danmu) {
+        danmuMapper.addDanmu(danmu);
+    }
+
+    @Async
+    public void asyncAddDanmu(Danmu danmu){
         danmuMapper.addDanmu(danmu);
     }
 
