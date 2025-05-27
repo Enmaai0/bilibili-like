@@ -2,17 +2,22 @@ package com.bilibili.service.websocket;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bilibili.domain.Danmu;
+import com.bilibili.domain.constant.UserActivityConstant;
 import com.bilibili.service.DanmuService;
+import com.bilibili.service.util.RocketMQUtil;
 import com.bilibili.service.util.TokenUtil;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,7 +28,7 @@ public class WebSocketService {
 
     private static final AtomicInteger onlineCount = new AtomicInteger(0);
 
-    private static final ConcurrentHashMap<String, WebSocketService> webSocketMap = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String, WebSocketService> webSocketMap = new ConcurrentHashMap<>();
 
     private Session session;
 
@@ -74,14 +79,17 @@ public class WebSocketService {
         logger.info("userInfo: {}, message: {}", sessionId, message);
         // send message to all connected clients
         for (WebSocketService webSocket : webSocketMap.values()) {
-            try {
-                if(webSocket.session == null || !webSocket.session.isOpen()) {
-                    continue;
+            JSONObject msgBody = new JSONObject();
+            msgBody.put("message", message);
+            msgBody.put("sessionId", sessionId);
+
+            if(applicationContext != null) {
+                try {
+                    RocketMQUtil rocketMQUtil = applicationContext.getBean(RocketMQUtil.class);
+                    rocketMQUtil.asyncSendMsg(UserActivityConstant.TOPIC_DANMU, msgBody.toJSONString());
+                } catch (Exception e) {
+                    logger.error("Failed to send message to RocketMQ: {}", e.getMessage());
                 }
-                webSocket.sendMessage(message);
-            } catch (Exception e) {
-                logger.error("Failed to send message to client: {}", e.getMessage());
-                e.printStackTrace();
             }
         }
         if(userId != null) {
@@ -89,7 +97,7 @@ public class WebSocketService {
             Danmu danmu = JSONObject.parseObject(message, Danmu.class);
             danmu.setUserId(userId);
             DanmuService danmuService = (DanmuService) applicationContext.getBean("danmuService");
-            danmuService.addDanmu(danmu);
+            danmuService.asyncAddDanmu(danmu);
             // Save danmu to Redis
             danmuService.addDanmuToRedis(danmu);
         }
@@ -107,5 +115,9 @@ public class WebSocketService {
 
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
+    }
+
+    public Session getSession() {
+        return session;
     }
 }

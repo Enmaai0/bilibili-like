@@ -24,14 +24,13 @@
                 userId,
                 videoId,
                 content,
-                danmuTime,
-        )
+                danmuTime
+            )
             values(
               #{userId},
               #{videoId},
               #{content},
-              #{danmuTime},
-        )
-               )
+              #{danmuTime}
+            )
     </insert>
 </mapper>
