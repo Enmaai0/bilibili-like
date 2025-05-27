@@ -9,15 +9,13 @@ import com.bilibili.service.util.TokenUtil;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -46,7 +44,15 @@ public class WebSocketService {
     public void onOpen(Session session, @PathParam("token") String token) {
         try{
             this.userId = TokenUtil.verifyToken(token);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logger.error("Token verification failed: {}", e.getMessage());
+            try {
+                session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "Invalid token"));
+            } catch (IOException ioException) {
+                logger.error("Failed to close session: {}", ioException.getMessage());
+            }
+            return;
+        }
         this.session = session;
         this.sessionId = session.getId();
         if(webSocketMap.containsKey(sessionId)) {
@@ -81,7 +87,7 @@ public class WebSocketService {
         for (WebSocketService webSocket : webSocketMap.values()) {
             JSONObject msgBody = new JSONObject();
             msgBody.put("message", message);
-            msgBody.put("sessionId", sessionId);
+            msgBody.put("sessionId", webSocket.getSession().getId());
 
             if(applicationContext != null) {
                 try {
@@ -119,5 +125,22 @@ public class WebSocketService {
 
     public Session getSession() {
         return session;
+    }
+
+    // every 5 seconds
+    @Scheduled(fixedRate = 5000)
+    private void sendOnlineCount() {
+        for (WebSocketService webSocket : webSocketMap.values()) {
+            if(webSocket.session != null && webSocket.session.isOpen()) {
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("onlineCount", onlineCount.get());
+                    jsonObject.put("msg", "Online user: " + onlineCount.get());
+                    webSocket.sendMessage(jsonObject.toJSONString());
+                } catch (IOException e) {
+                    logger.error("Failed to send online users", e);
+                }
+            }
+        }
     }
 }
