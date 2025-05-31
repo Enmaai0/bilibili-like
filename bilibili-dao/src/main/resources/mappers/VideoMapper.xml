@@ -18,9 +18,9 @@
 
     <select id="pageListVideos" parameterType="java.util.Map" resultType="com.bilibili.domain.Video">
         select
-            *
+        *
         from
-            video
+        video
         <where>
             1=1
             <if test="area != null and area != ''">
@@ -30,8 +30,8 @@
         order by createTime desc
         limit #{start}, #{limit}
     </select>
-    
-    <select id="getVideoById" parameterType="java.lang.Integer" resultType="com.bilibili.domain.Video">
+
+    <select id="getVideoById" parameterType="java.lang.Long" resultType="com.bilibili.domain.Video">
         select
             *
         from
@@ -44,13 +44,13 @@
         select
             id
         from
-            video
+            video_like
         where
             userId = #{userId}
-            and videoId = #{videoId}
+          and videoId = #{videoId}
     </select>
-    
-    <select id="countVideoLikes" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+
+    <select id="countVideoLikes" parameterType="java.lang.Long" resultType="java.lang.Integer">
         select
             count(1)
         from
@@ -59,7 +59,7 @@
             videoId = #{videoId}
     </select>
 
-    <select id="countVideoCollections" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+    <select id="countVideoCollections" parameterType="java.lang.Long" resultType="java.lang.Integer">
         select
             count(1)
         from
@@ -67,17 +67,17 @@
         where
             videoId = #{videoId}
     </select>
-    
-    <select id="getVideoCollectionsByVideoIdAndUserId" parameterType="java.util.Map" resultType="com.bilibili.domain.VideoCollection">
+
+    <select id="getVideoCollectionByVideoIdAndUserId" parameterType="java.util.Map" resultType="com.bilibili.domain.VideoCollection">
         select
             *
         from
             video_collection
         where
             userId = #{userId}
-            and videoId = #{videoId}
+          and videoId = #{videoId}
     </select>
-    
+
     <select id="getVideoCoinByVideoIdAndUserId" parameterType="java.util.Map" resultType="com.bilibili.domain.VideoCoin">
         select
             *
@@ -85,7 +85,7 @@
             video_coin
         where
             userId = #{userId}
-            and videoId = #{videoId}
+          and videoId = #{videoId}
     </select>
 
     <select id="getVideoCoinsAmount" parameterType="java.lang.Long" resultType="java.lang.Integer">
@@ -96,12 +96,12 @@
         where
             videoId = #{videoId}
     </select>
-    
+
     <select id="pageCountVideoComments" parameterType="java.util.Map" resultType="java.lang.Integer">
         select
-            count(1)
+        count(1)
         from
-            video_comment
+        video_comment
         <where>
             videoId = #{videoId}
             and rootId is null
@@ -115,21 +115,21 @@
             video_comment
         where
             videoId = #{videoId}
-            and rootId is null
+          and rootId is null
         order by id desc
-        limit #{start}, #{limit}
+            limit #{start}, #{limit}
     </select>
 
     <select id="pageListVideoCommentsByParentIds" parameterType="java.util.List" resultType="com.bilibili.domain.VideoComment">
         select
-            *
+        *
         from
-            video_comment
+        video_comment
         where
-            rootId in
-            <foreach collection="parentIds" item="item" open="(" separator="," close=")">
-                #{item}
-            </foreach>
+        rootId in
+        <foreach collection="parentIds" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
         order by id
     </select>
 
@@ -142,97 +142,94 @@
             id = #{id}
     </select>
 
+    <!-- 修复1: 移除id字段，使用values而不是value -->
     <insert id="addVideos" parameterType="com.bilibili.domain.Video" useGeneratedKeys="true" keyProperty="id">
         insert into
             video(
-                id,
-                userId,
-                url,
-                thumbnail,
-                title,
-                `type`,
-                duration,
-                area,
-                description
-            )value(
-                #{id},
-                #{userId},
-                #{url},
-                #{thumbnail},
-                #{title},
-                #{type},
-                #{duration},
-                #{area},
-                #{description}
-            )
+            userId,
+            url,
+            thumbnail,
+            title,
+            `type`,
+            duration,
+            area,
+            description
+        ) values (
+                     #{userId},
+                     #{url},
+                     #{thumbnail},
+                     #{title},
+                     #{type},
+                     #{duration},
+                     #{area},
+                     #{description}
+                 )
     </insert>
 
+    <!-- 修复2: 正确的批量插入语法 -->
     <insert id="batchAddVideoTags" parameterType="java.util.List">
-        insert into
-            video_tag(
-                videoId,
-                tagId
-            )value(
-                #{videoId},
-                #{tagId}
-            )
-        <foreach collection="videoTagList" item="item" separator=",">
+        insert into video_tag (videoId, tagId) values
+        <foreach collection="list" item="item" separator=",">
             (#{item.videoId}, #{item.tagId})
         </foreach>
     </insert>
-    
+
+    <!-- 修复3: 使用values而不是value -->
     <insert id="addVideoLike" parameterType="com.bilibili.domain.VideoLike">
         insert into
             video_like(
-                userId,
-                videoId
-            )value(
-                #{userId},
-                #{videoId}
-            )
+            userId,
+            videoId
+        ) values (
+                     #{userId},
+                     #{videoId}
+                 )
     </insert>
 
+    <!-- 修复4: 添加缺失的逗号 -->
     <insert id="addVideoCollection" parameterType="com.bilibili.domain.VideoCollection">
         insert into
             video_collection(
-                userId,
-                videoId,
-                groupId
-            )value(
-                #{userId},
-                #{videoId}
-                #{groupId}
-            )
+            userId,
+            videoId,
+            groupId
+        ) values (
+                     #{userId},
+                     #{videoId},
+                     #{groupId}
+                 )
     </insert>
 
+    <!-- 修复5: 语法正确 -->
     <insert id="addVideoCoin" parameterType="com.bilibili.domain.VideoCoin">
         insert into
             video_coin(
-                userId,
-                videoId,
-                amount
-            )value(
-                #{userId},
-                #{videoId},
-                #{amount}
-            )
+            userId,
+            videoId,
+            amount
+        ) values (
+                     #{userId},
+                     #{videoId},
+                     #{amount}
+                 )
     </insert>
 
+    <!-- 修复6: 移除多余的逗号 -->
     <insert id="addVideoComment" parameterType="com.bilibili.domain.VideoComment">
         insert into
             video_comment(
-                userId,
-                videoId,
-                comment,
-                replyUserId,
-                rootId,
-            )value(
-                #{userId},
-                #{videoId},
-                #{comment},
-                #{replyUserId},
-                #{rootId}
-            )
+            userId,
+            videoId,
+            comment,
+            replyUserId,
+            rootId
+        ) values (
+                     #{userId},
+                     #{videoId},
+                     #{comment},
+                     #{replyUserId},
+                     #{rootId}
+                 )
     </insert>
 
     <update id="updateVideoCoin" parameterType="com.bilibili.domain.VideoCoin">
@@ -242,22 +239,22 @@
             amount = #{amount}
         where
             userId = #{userId}
-            and videoId = #{videoId}
+          and videoId = #{videoId}
     </update>
-    
-    <delete id="deleteVideoLike" parameterType="com.bilibili.domain.VideoLike">
+
+    <delete id="deleteVideoLike">
         delete from
             video_like
         where
             userId = #{userId}
-            and videoId = #{videoId}
+          and videoId = #{videoId}
     </delete>
-    
-    <delete id="deleteVideoCollection" parameterType="com.bilibili.domain.VideoCollection">
+
+    <delete id="deleteVideoCollection">
         delete from
             video_collection
         where
             userId = #{userId}
-            and videoId = #{videoId}
+          and videoId = #{videoId}
     </delete>
 </mapper>

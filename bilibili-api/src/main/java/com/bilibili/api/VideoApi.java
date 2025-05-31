@@ -1,6 +1,7 @@
 package com.bilibili.api;
 
 import com.bilibili.domain.*;
+import com.bilibili.service.ElasticService;
 import com.bilibili.service.VideoService;
 import com.bilibili.support.UserSupport;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,9 @@ public class VideoApi {
     @Autowired
     private UserSupport userSupport;
 
+    @Autowired
+    private ElasticService elasticService;
+
     @PostMapping("/videos")
     public JsonResponse<String> addVideos(@RequestBody Video video) {
         // Set the user ID from the UserSupport
@@ -25,6 +29,9 @@ public class VideoApi {
 
         // Call the service to add the video
         videoService.addVideo(video);
+
+        // Add the video to the Elasticsearch index
+        elasticService.add(video);
 
         // Return a success response
         return JsonResponse.success();
@@ -135,5 +142,11 @@ public class VideoApi {
     public JsonResponse<Map<String, Object>> getVideoDetails(@RequestParam Long videoId){
         Map<String, Object> result = videoService.getVideoDetails(videoId);
         return JsonResponse.success(result);
+    }
+
+    @GetMapping("/es-videos")
+    public JsonResponse<Video> getEsVideos(@RequestParam String keyword) {
+        Video video = elasticService.getVideos(keyword);
+        return JsonResponse.success(video);
     }
 }
