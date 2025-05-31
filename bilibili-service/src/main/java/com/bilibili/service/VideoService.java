@@ -32,7 +32,6 @@ public class VideoService {
 
     @Transactional
     public void addVideo(Video video) {
-        Date now = new Date();
         videoMapper.addVideos(video);
         Long videoId = video.getId();
 

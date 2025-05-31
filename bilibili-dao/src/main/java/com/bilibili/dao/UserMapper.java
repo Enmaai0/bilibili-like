@@ -2,11 +2,13 @@ package com.bilibili.dao;
 
 import com.bilibili.domain.User;
 import com.bilibili.domain.UserInfo;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
 
+@Mapper
 public interface UserMapper {
     User getUserByPhone(String phone);
 

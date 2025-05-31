@@ -1,9 +1,11 @@
 package com.bilibili.dao;
 
 import com.bilibili.domain.FollowingGroup;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
+@Mapper
 public interface FollowingGroupMapper {
     FollowingGroup getByType(String type);
 
