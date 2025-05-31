@@ -31,7 +31,7 @@ public class VideoApi {
         videoService.addVideo(video);
 
         // Add the video to the Elasticsearch index
-        elasticService.add(video);
+        elasticService.addVideo(video);
 
         // Return a success response
         return JsonResponse.success();
