@@ -142,7 +142,36 @@
             id = #{id}
     </select>
 
-    <!-- 修复1: 移除id字段，使用values而不是value -->
+    <select id="getVideoView" parameterType="java.util.Map" resultType="com.bilibili.domain.VideoView">
+        select
+            view
+        from
+            video
+        where
+            videoId = #{videoId}
+            <if test = "userId == null and clientId != null">
+                and clientId = #{clientId} and userId is null
+            </if>
+            <if test = "userId != null">
+                and userId = #{userId}
+            </if>
+            <if test = "ip != null and ip != ''">
+                and ip = #{ip}
+            </if>
+            <if test = "today != null and today != ''">
+                and DATE_FORMAT(createTime, '%Y-%m-%d') = #{today}
+            </if>
+    </select>
+
+    <select id="getVideoViewCounts" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        select
+            count(1)
+        from
+            video_view
+        where
+            videoId = #{videoId}
+    </select>
+
     <insert id="addVideos" parameterType="com.bilibili.domain.Video" useGeneratedKeys="true" keyProperty="id">
         insert into
             video(
@@ -166,7 +195,6 @@
                  )
     </insert>
 
-    <!-- 修复2: 正确的批量插入语法 -->
     <insert id="batchAddVideoTags" parameterType="java.util.List">
         insert into video_tag (videoId, tagId) values
         <foreach collection="list" item="item" separator=",">
@@ -174,7 +202,6 @@
         </foreach>
     </insert>
 
-    <!-- 修复3: 使用values而不是value -->
     <insert id="addVideoLike" parameterType="com.bilibili.domain.VideoLike">
         insert into
             video_like(
@@ -186,7 +213,6 @@
                  )
     </insert>
 
-    <!-- 修复4: 添加缺失的逗号 -->
     <insert id="addVideoCollection" parameterType="com.bilibili.domain.VideoCollection">
         insert into
             video_collection(
@@ -200,7 +226,6 @@
                  )
     </insert>
 
-    <!-- 修复5: 语法正确 -->
     <insert id="addVideoCoin" parameterType="com.bilibili.domain.VideoCoin">
         insert into
             video_coin(
@@ -214,7 +239,6 @@
                  )
     </insert>
 
-    <!-- 修复6: 移除多余的逗号 -->
     <insert id="addVideoComment" parameterType="com.bilibili.domain.VideoComment">
         insert into
             video_comment(
