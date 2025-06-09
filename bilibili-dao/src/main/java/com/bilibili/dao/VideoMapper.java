@@ -52,4 +52,10 @@ public interface VideoMapper {
     List<VideoComment> pageListVideoCommentsByParentIds(List<Long> parentIdList);
 
     Video getVideoDetails(Long videoId);
+
+    VideoView getVideoView(Map<String, Object> params);
+
+    void addVideoView(VideoView videoView);
+
+    Integer getVideoViewCounts(Long videoId);
 }

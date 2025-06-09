@@ -149,4 +149,26 @@ public class VideoApi {
         Video video = elasticService.getVideos(keyword);
         return JsonResponse.success(video);
     }
+
+    // add a video view history
+    @PostMapping("/video-views")
+    public JsonResponse<String> addVideoView(@RequestBody VideoView videoView,
+                                             HttpServletRequest request){
+        Long userId;
+        try{
+            userId = userSupport.getCurrentUserId();
+            videoView.setUserId(userId);
+            videoService.addVideoView(videoView, request);
+        }catch (Exception e){
+            videoService.addVideoView(videoView, request);
+        }
+        return JsonResponse.success();
+    }
+
+    // Get the view count of a video
+    @GetMapping("/video-view-counts")
+    public JsonResponse<Integer> getVideoViewCounts(@RequestParam Long videoId){
+        Integer count = videoService.getVideoViewCounts(videoId);
+        return JsonResponse.success(count);
+    }
 }
