@@ -193,13 +193,3 @@ npm run build
 ### License | 许可证
 
 MIT License
-
-### Contact | 联系方式
-
-Feel free to reach out if you have any questions about this project.
-如果您对这个项目有任何问题，欢迎联系我。
-
----
-
-*This project is part of my portfolio demonstrating frontend development skills.*  
-*这个项目是我前端开发技能展示作品集的一部分。*
