@@ -94,7 +94,7 @@ This project was built as part of my learning journey in frontend development. I
 
 ### 项目介绍
 
-VideoHub 是一个基于 Vue.js 构建的现代化视频分享平台。这个项目旨在为用户提供流畅的视频观看、上传和分享体验，展示了完整的前端开发技能和对用户体验的关注。
+VideoHub 是一个基于 Vue.js 构建的现代化视频分享平台。这个项目为用户提供流畅的视频观看、上传和分享体验。
 
 ### 主要功能
 
